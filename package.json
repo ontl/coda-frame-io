@@ -9,7 +9,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@codahq/packs-sdk": "^1.4.1"
+    "@codahq/packs-sdk": "^1.5.1"
   },
   "devDependencies": {
     "@types/chai": "^4.3.4",
