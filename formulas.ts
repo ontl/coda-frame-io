@@ -161,17 +161,22 @@ async function getAssetsInProject(
     while (containers.length > 0) {
         let containerResults = [];
         let containersToFetch = containers;
-        // TODO: Parallelize this
+
+        // fetch the children of all these containers, in parallel
+        let requests = [];
         for (let container of containersToFetch) {
-            let containerResult = await getAssetChildren(
+            let containerRequest = await getAssetChildren(
                 context,
                 container.assetId
             );
-            containerResults.push(containerResult);
+            requests.push(containerRequest);
         }
+        containerResults = await Promise.all(requests);
+
         // add the elements of containerResults to result
         result = result.concat(...containerResults);
-        // reassign containers to be any of these new assets that have children
+        // reassign containers to be any of these new assets that have children,
+        // so we can go through again and get *their* children
         containers = containerResults.filter((asset) => asset.itemCount > 0);
     }
 
@@ -196,14 +201,26 @@ export async function syncProjectComments(
     let assets = await getAssetsInProject(context, projectId);
     // Trim to assets that have comments
     assets = assets.filter((asset) => asset.commentCount > 0);
-    let commentsResult = [];
-    // TODO: Parallelize this
+
+    // Set up for parallelizing the requests
+    let requests = [];
+
+    // Queue up the requests
     for (let asset of assets) {
-        let commentResponse = await context.fetcher.fetch({
+        let request = await context.fetcher.fetch({
             method: "GET",
             url: constants.BASE_URL + "/assets/" + asset.assetId + "/comments",
         });
+        requests.push(request);
+    }
+    let responses = await Promise.all(requests);
+
+    let commentsResult = [];
+    for (let commentResponse of responses) {
         for (let comment of commentResponse.body) {
+            let asset = assets.find(
+                (asset) => asset.assetId == comment.asset_id
+            );
             let timecodeSeconds = comment.timestamp / asset.fps;
             commentsResult.push({
                 commentId: comment.id,
@@ -229,6 +246,8 @@ export async function syncProjectComments(
                 isAReply: comment.parent_id !== null,
             });
         }
+
+        // Thread in replies
         for (let comment of commentsResult) {
             if (comment.hasReplies) {
                 comment.replies = commentsResult
