@@ -4,18 +4,26 @@ import { type } from "os";
 export const ProjectSchema = coda.makeObjectSchema({
     properties: {
         projectId: {
-            description: "ID of the project",
             type: coda.ValueType.String,
             required: true,
         },
         name: {
-            description: "Name of the project",
             type: coda.ValueType.String,
             required: true,
         },
         teamId: {
             description: "ID of the team the project belongs to",
             type: coda.ValueType.String,
+        },
+        url: {
+            type: coda.ValueType.String,
+            codaType: coda.ValueHintType.Url,
+        },
+        fileCount: {
+            type: coda.ValueType.Number,
+        },
+        folderCount: {
+            type: coda.ValueType.Number,
         },
         createdAt: {
             description: "Date the project was created",
@@ -35,6 +43,7 @@ export const ProjectSchema = coda.makeObjectSchema({
     },
     displayProperty: "name",
     idProperty: "projectId",
+    featuredProperties: ["url", "fileCount"],
 });
 
 export const ProjectReferenceSchema = coda.makeReferenceSchemaFromObjectSchema(

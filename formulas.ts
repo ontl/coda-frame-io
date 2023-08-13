@@ -47,6 +47,9 @@ export async function syncProjects(
                 rootAssetId: project.root_asset_id,
                 createdAt: project.inserted_at,
                 updatedAt: project.updated_at,
+                url: "https://app.frame.io/projects/" + project.id,
+                fileCount: project.file_count,
+                folderCount: project.folder_count,
             });
         }
     }
