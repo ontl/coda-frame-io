@@ -33,7 +33,7 @@ export async function syncProjects(
         // results, if we want.
         let url = coda.withQueryParams(
             constants.BASE_URL + "/teams/" + teamId + "/projects",
-            { per_page: 9999 }
+            { page_size: 9999 }
         );
         let teamProjectsResponse = await context.fetcher.fetch({
             method: "GET",
