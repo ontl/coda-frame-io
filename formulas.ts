@@ -119,7 +119,7 @@ async function getAssetChildren(
             };
         } else {
             parent = {
-                name: "Not found", // this is just a placeholder; it'll probably be found and populate
+                name: "Not synced", // this is just a placeholder; it'll probably be found and populate
                 assetId: asset.parent_id,
             };
         }
@@ -137,6 +137,7 @@ async function getAssetChildren(
             updatedAt: asset.updated_at,
             isInProjectRoot: isInProjectRoot,
             fps: asset.fps,
+            url: "https://app.frame.io/player/" + asset.id,
         });
     }
 
@@ -165,16 +166,22 @@ async function getAssetsInProject(
         let containerResults = [];
         let containersToFetch = containers;
 
+        console.log(
+            "Layer of containers. Container list: " +
+                containersToFetch.map((c) => c.name)
+        );
+
         // fetch the children of all these containers, in parallel
         let requests = [];
         for (let container of containersToFetch) {
-            let containerRequest = await getAssetChildren(
-                context,
-                container.assetId
-            );
+            let containerRequest = getAssetChildren(context, container.assetId);
             requests.push(containerRequest);
         }
         containerResults = await Promise.all(requests);
+
+        // flatten out, cause it's an array of arrays, with assets
+        // grouped in an array per parent
+        containerResults = containerResults.flat(1);
 
         // add the elements of containerResults to result
         result = result.concat(...containerResults);
@@ -210,7 +217,7 @@ export async function syncProjectComments(
 
     // Queue up the requests
     for (let asset of assets) {
-        let request = await context.fetcher.fetch({
+        let request = context.fetcher.fetch({
             method: "GET",
             url: constants.BASE_URL + "/assets/" + asset.assetId + "/comments",
         });
@@ -243,7 +250,7 @@ export async function syncProjectComments(
                 replyingTo: comment.parent_id
                     ? {
                           commentId: comment.parent_id,
-                          text: "Comment text not found",
+                          text: "Comment text not synced",
                       }
                     : null,
                 isAReply: comment.parent_id !== null,

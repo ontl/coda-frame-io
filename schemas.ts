@@ -111,6 +111,10 @@ export const AssetSchema = coda.makeObjectSchema({
             description: "Frame rate (frames per second)",
             type: coda.ValueType.Number,
         },
+        url: {
+            type: coda.ValueType.String,
+            codaType: coda.ValueHintType.Url,
+        },
     },
     displayProperty: "name",
     idProperty: "assetId",
