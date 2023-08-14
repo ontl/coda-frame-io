@@ -97,6 +97,21 @@ pack.addSyncTable({
         execute: async function ([teamId], context) {
             return await formulas.syncProjects(context, teamId);
         },
+        executeUpdate: async function (args, updates, context) {
+            // We just have it set up to do one row at a time, so we can take
+            // the first (only) item in the array
+            let update = updates[0];
+
+            return {
+                result: [
+                    await formulas.updateProject(
+                        context,
+                        update.newValue.projectId,
+                        update.newValue.name
+                    ),
+                ],
+            };
+        },
     },
 });
 

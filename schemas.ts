@@ -10,6 +10,7 @@ export const ProjectSchema = coda.makeObjectSchema({
         name: {
             type: coda.ValueType.String,
             required: true,
+            mutable: true,
         },
         teamId: {
             description: "ID of the team the project belongs to",
