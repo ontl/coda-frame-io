@@ -57,13 +57,42 @@ export async function syncProjects(
     return { result: projects };
 }
 
+export async function updateProject(
+    context: coda.ExecutionContext,
+    projectId: String,
+    name: String
+) {
+    let response = await context.fetcher.fetch({
+        method: "PUT",
+        url: constants.BASE_URL + "/projects/" + projectId,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            name: name,
+        }),
+    });
+    let project = response.body;
+    return {
+        name: project.name,
+        projectId: project.id,
+        teamId: project.teamId,
+        rootAssetId: project.root_asset_id,
+        createdAt: project.inserted_at,
+        updatedAt: project.updated_at,
+        url: "https://app.frame.io/projects/" + project.id,
+        fileCount: project.file_count,
+        folderCount: project.folder_count,
+    };
+}
+
 /* -------------------------------------------------------------------------- */
 /*                                REVIEW LINKS                                */
 /* -------------------------------------------------------------------------- */
 
 export async function syncReviewLinks(
     context: coda.SyncExecutionContext,
-    projectId: string
+    projectId: String
 ) {
     let response = await context.fetcher.fetch({
         method: "GET",

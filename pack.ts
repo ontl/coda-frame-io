@@ -44,6 +44,38 @@ pack.setUserAuthentication({
     },
 });
 
+/* -------------------------------------------------------------------------- */
+/*                                  Formulas                                  */
+/* -------------------------------------------------------------------------- */
+
+pack.addFormula({
+    name: "UpdateProject",
+    description: "Update the name of a Frame.io project",
+    parameters: [
+        coda.makeParameter({
+            type: coda.ParameterType.String,
+            name: "projectId",
+            description: "The ID of the project",
+        }),
+        coda.makeParameter({
+            type: coda.ParameterType.String,
+            name: "name",
+            description: "The new name of the project",
+            optional: true,
+        }),
+    ],
+    resultType: coda.ValueType.Object,
+    schema: schemas.ProjectReferenceSchema,
+    isAction: true,
+    execute: async function ([projectId, name], context) {
+        return await formulas.updateProject(context, projectId, name);
+    },
+});
+
+/* -------------------------------------------------------------------------- */
+/*                                 Sync Tables                                */
+/* -------------------------------------------------------------------------- */
+
 // Add a sync table to fetch all projects (optionally, for a single team)
 pack.addSyncTable({
     name: "Projects",
