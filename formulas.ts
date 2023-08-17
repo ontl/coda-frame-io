@@ -6,6 +6,30 @@ import * as helpers from "./helpers";
 /*                                  PROJECTS                                  */
 /* -------------------------------------------------------------------------- */
 
+function processProjectResponse(response): {
+    name: string;
+    projectId: string;
+    teamId: string;
+    rootAssetId: string;
+    createdAt: string;
+    updatedAt: string;
+    url: string;
+    fileCount: number;
+    folderCount: number;
+} {
+    return {
+        name: response.name,
+        projectId: response.id,
+        teamId: response.team_id,
+        rootAssetId: response.root_asset_id,
+        createdAt: response.inserted_at,
+        updatedAt: response.updated_at,
+        url: "https://app.frame.io/projects/" + response.id,
+        fileCount: response.file_count,
+        folderCount: response.folder_count,
+    };
+}
+
 export async function syncProjects(
     context: coda.SyncExecutionContext,
     teamId?: string
@@ -40,17 +64,7 @@ export async function syncProjects(
             url: url,
         });
         for (let project of teamProjectsResponse.body) {
-            projects.push({
-                name: project.name,
-                projectId: project.id,
-                teamId: teamId,
-                rootAssetId: project.root_asset_id,
-                createdAt: project.inserted_at,
-                updatedAt: project.updated_at,
-                url: "https://app.frame.io/projects/" + project.id,
-                fileCount: project.file_count,
-                folderCount: project.folder_count,
-            });
+            projects.push(processProjectResponse(project));
         }
     }
 
@@ -74,15 +88,7 @@ export async function updateProject(
     });
     let project = response.body;
     return {
-        name: project.name,
-        projectId: project.id,
-        teamId: project.teamId,
-        rootAssetId: project.root_asset_id,
-        createdAt: project.inserted_at,
-        updatedAt: project.updated_at,
-        url: "https://app.frame.io/projects/" + project.id,
-        fileCount: project.file_count,
-        folderCount: project.folder_count,
+        result: processProjectResponse(project),
     };
 }
 
@@ -90,35 +96,97 @@ export async function updateProject(
 /*                                REVIEW LINKS                                */
 /* -------------------------------------------------------------------------- */
 
+function processReviewLinkResponse(responseBody): {
+    name: string;
+    url: string;
+    reviewLinkId: string;
+    projectId: string;
+    createdAt: string;
+    viewCount: number;
+    assets: Array<{
+        assetId: string;
+        name: string;
+    }>;
+    allowDownloading: boolean;
+    isActive: boolean;
+    viewAllVersions: boolean;
+} {
+    let assets = [];
+    for (let asset of responseBody.items) {
+        assets.push({
+            assetId: asset.asset_id,
+            name: "Not found",
+        });
+    }
+
+    return {
+        name: responseBody.name,
+        url: responseBody.short_url,
+        reviewLinkId: responseBody.id,
+        projectId: responseBody.project_id,
+        createdAt: responseBody.inserted_at,
+        viewCount: responseBody.view_count,
+        assets: assets,
+        allowDownloading: responseBody.enable_downloading,
+        isActive: responseBody.is_active,
+        viewAllVersions: !responseBody.current_version_only,
+    };
+}
+
 export async function syncReviewLinks(
     context: coda.SyncExecutionContext,
     projectId: String
 ) {
+    let url = coda.withQueryParams(
+        constants.BASE_URL + "/projects/" + projectId + "/review_links",
+        { page_size: 9999 }
+    );
     let response = await context.fetcher.fetch({
         method: "GET",
-        url: constants.BASE_URL + "/projects/" + projectId + "/review_links",
+        url: url,
     });
 
-    let result = [];
+    let results = [];
 
     for (let reviewLink of response.body) {
-        let assets = [];
-        for (let asset of reviewLink.items) {
-            assets.push({
-                assetId: asset.asset_id,
-                name: "Not found",
-            });
-        }
-        result.push({
-            name: reviewLink.name,
-            url: reviewLink.short_url,
-            reviewLinkId: reviewLink.id,
-            projectId: reviewLink.project_id,
-            createdAt: reviewLink.inserted_at,
-            viewCount: reviewLink.view_count,
-            assets: assets,
-        });
+        results.push(processReviewLinkResponse(reviewLink));
     }
+
+    return { result: results };
+}
+
+export async function updateReviewLink(
+    context: coda.ExecutionContext,
+    reviewLinkId: String,
+    name?: String,
+    allowDownloading?: Boolean,
+    isActive?: Boolean,
+    viewAllVersions?: Boolean
+) {
+    let body: any = {};
+    if (name) {
+        body.name = name;
+    }
+    if (allowDownloading !== undefined) {
+        body.enable_downloading = allowDownloading;
+    }
+    if (isActive !== undefined) {
+        body.is_active = isActive;
+    }
+    if (viewAllVersions !== undefined) {
+        body.current_version_only = !viewAllVersions;
+    }
+
+    let response = await context.fetcher.fetch({
+        method: "PUT",
+        url: constants.BASE_URL + "/review_links/" + reviewLinkId,
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
+    });
+
+    let result = processReviewLinkResponse(response.body);
 
     return { result: result };
 }
@@ -131,9 +199,13 @@ async function getAssetChildren(
     context: coda.SyncExecutionContext,
     assetId: string
 ) {
+    let url = coda.withQueryParams(
+        constants.BASE_URL + "/assets/" + assetId + "/children",
+        { page_size: 9999 }
+    );
     let assetResponse = await context.fetcher.fetch({
         method: "GET",
-        url: constants.BASE_URL + "/assets/" + assetId + "/children",
+        url: url,
     });
 
     let result = [];
@@ -246,9 +318,13 @@ export async function syncProjectComments(
 
     // Queue up the requests
     for (let asset of assets) {
+        let url = coda.withQueryParams(
+            constants.BASE_URL + "/assets/" + asset.assetId + "/comments",
+            { page_size: 9999 }
+        );
         let request = context.fetcher.fetch({
             method: "GET",
-            url: constants.BASE_URL + "/assets/" + asset.assetId + "/comments",
+            url: url,
         });
         requests.push(request);
     }

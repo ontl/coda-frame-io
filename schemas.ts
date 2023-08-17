@@ -128,6 +128,7 @@ export const ReviewLinkSchema = coda.makeObjectSchema({
             description: "Name of the review link",
             type: coda.ValueType.String,
             required: true,
+            mutable: true,
         },
         url: {
             description: "URL of the review link",
@@ -160,6 +161,22 @@ export const ReviewLinkSchema = coda.makeObjectSchema({
             description: "Assets in the review link",
             type: coda.ValueType.Array,
             items: AssetReferenceSchema,
+        },
+        allowDownloading: {
+            description: "Allow viewers to download files from this link",
+            type: coda.ValueType.Boolean,
+            mutable: true,
+        },
+        isActive: {
+            description: "Whether the review link is enabled/viewable",
+            type: coda.ValueType.Boolean,
+            mutable: true,
+        },
+        viewAllVersions: {
+            description:
+                "For review links that include stacks, whether previous versions can be seen",
+            type: coda.ValueType.Boolean,
+            mutable: true,
         },
     },
     displayProperty: "name",
@@ -243,6 +260,7 @@ export const CommentSchema = coda.makeObjectSchema({
         completed: {
             description: "Whether this comment has been marked as completed",
             type: coda.ValueType.Boolean,
+            mutable: true,
         },
     },
     displayProperty: "text",

@@ -72,6 +72,59 @@ pack.addFormula({
     },
 });
 
+pack.addFormula({
+    name: "UpdateReviewLink",
+    description: "Update the name or settings of a Frame.io review link",
+    parameters: [
+        coda.makeParameter({
+            type: coda.ParameterType.String,
+            name: "reviewLinkId",
+            description: "The ID of the review link",
+        }),
+        coda.makeParameter({
+            type: coda.ParameterType.String,
+            name: "name",
+            description: "The new name of the review link",
+            optional: true,
+        }),
+        coda.makeParameter({
+            type: coda.ParameterType.Boolean,
+            name: "allowDownloading",
+            description: "Allow viewers to download files from this link",
+            optional: true,
+        }),
+        coda.makeParameter({
+            type: coda.ParameterType.Boolean,
+            name: "isActive",
+            description: "Whether the review link is enabled/viewable",
+            optional: true,
+        }),
+        coda.makeParameter({
+            type: coda.ParameterType.Boolean,
+            name: "viewAllVersions",
+            description:
+                "For review links that include stacks, whether previous versions can be seen",
+            optional: true,
+        }),
+    ],
+    resultType: coda.ValueType.Object,
+    schema: schemas.ReviewLinkReferenceSchema,
+    isAction: true,
+    execute: async function (
+        [reviewLinkId, name, allowDownloading, isActive, viewAllVersions],
+        context
+    ) {
+        return await formulas.updateReviewLink(
+            context,
+            reviewLinkId,
+            name,
+            allowDownloading,
+            isActive,
+            viewAllVersions
+        );
+    },
+});
+
 /* -------------------------------------------------------------------------- */
 /*                                 Sync Tables                                */
 /* -------------------------------------------------------------------------- */
@@ -134,6 +187,22 @@ pack.addSyncTable({
         ],
         execute: async function ([projectId], context) {
             return await formulas.syncReviewLinks(context, projectId);
+        },
+        executeUpdate: async function (args, updates, context) {
+            let update = updates[0];
+
+            return {
+                result: [
+                    await formulas.updateReviewLink(
+                        context,
+                        update.newValue.reviewLinkId,
+                        update.newValue.name,
+                        update.newValue.allowDownloading,
+                        update.newValue.isActive,
+                        update.newValue.viewAllVersions
+                    ),
+                ],
+            };
         },
     },
 });
