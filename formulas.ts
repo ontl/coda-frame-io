@@ -79,16 +79,24 @@ export async function syncProjects(
         teamIds = response.body.map((team) => team.id);
     }
 
+    // We used to just gobble up everything but then started hitting 4MB response
+    // size limits. So now we're using continuations. It's a bit messy cause we're
+    // potentially sipping from multiple teams each continuation, but I think that's
+    // ok? Worst case the user has to sort their sync table by something other than
+    // the default row order to avoid multiple teams' results being interleaved.
+
+    let perPage = 100;
+    // If there's a page number in the continuation, use it. Otherwise, start at 1.
+    let pageNumber: number = (context.sync.continuation?.page as number) || 1;
+    // Initialize morePages to false and let any team who has more pages go ahead and
+    // override it to true if they like.
+    let morePages = false;
+
     let projects = [];
     for (let teamId of teamIds) {
-        // The safer way to do this would be with continuations. But because
-        // we're potentially doing multiple teamIds, it gets really complicated to
-        // manage the pagination, so instead we're just going to take advantage
-        // of the fact that frame.io will send us apparently unlimited number of
-        // results, if we want.
         let url = coda.withQueryParams(
             constants.BASE_URL + "/teams/" + teamId + "/projects",
-            { page_size: 9999 }
+            { page_size: perPage, page: pageNumber }
         );
         let teamProjectsResponse = await context.fetcher.fetch({
             method: "GET",
@@ -97,9 +105,21 @@ export async function syncProjects(
         for (let project of teamProjectsResponse.body) {
             projects.push(processProjectResponse(project));
         }
+        if (projects.length >= perPage) {
+            console.log("Team " + teamId + " has more pages");
+            morePages = true;
+        }
     }
 
-    return { result: projects };
+    let nextContinuation;
+    if (morePages) {
+        nextContinuation = { page: pageNumber + 1 };
+    }
+
+    return {
+        result: projects,
+        continuation: nextContinuation,
+    };
 }
 
 export async function updateProject(
