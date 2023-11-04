@@ -3,6 +3,37 @@ import * as constants from "./constants";
 import * as helpers from "./helpers";
 
 /* -------------------------------------------------------------------------- */
+/*                                    TEAMS                                   */
+/* -------------------------------------------------------------------------- */
+
+export async function syncTeams(context: coda.SyncExecutionContext) {
+    let url = coda.withQueryParams(constants.BASE_URL + "/teams", {
+        page_size: 9999,
+    });
+
+    let response = await context.fetcher.fetch({
+        method: "GET",
+        url: url,
+    });
+
+    let teams = [];
+    for (let team of response.body) {
+        teams.push({
+            teamId: team.id,
+            name: team.name,
+            storageUsed: team.storage / 1000000000,
+            storageLimit: team.storage_limit / 1000000000,
+            link: team.link,
+            slackWebhook: team.slack_webhook,
+            logo: team.team_image,
+            projectCount: team.project_count,
+        });
+    }
+
+    return { result: teams };
+}
+
+/* -------------------------------------------------------------------------- */
 /*                                  PROJECTS                                  */
 /* -------------------------------------------------------------------------- */
 

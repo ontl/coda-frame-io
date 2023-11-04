@@ -1,6 +1,45 @@
 import * as coda from "@codahq/packs-sdk";
 import { type } from "os";
 
+export const TeamSchema = coda.makeObjectSchema({
+    properties: {
+        teamId: {
+            type: coda.ValueType.String,
+            required: true,
+        },
+        name: {
+            type: coda.ValueType.String,
+            required: true,
+        },
+        storageUsed: {
+            description: "Storage used by the team in GB",
+            type: coda.ValueType.Number,
+        },
+        storageLimit: {
+            description: "Storage limit for the team in GB",
+            type: coda.ValueType.Number,
+        },
+        link: {
+            description: "Link to the team in Frame.io",
+            type: coda.ValueType.String,
+            codaType: coda.ValueHintType.Url,
+        },
+        slackWebhook: {
+            type: coda.ValueType.String,
+        },
+        logo: {
+            type: coda.ValueType.String,
+            codaType: coda.ValueHintType.ImageAttachment,
+        },
+        projectCount: {
+            type: coda.ValueType.Number,
+        },
+    },
+    displayProperty: "name",
+    idProperty: "teamId",
+    featuredProperties: ["storageUsed", "storageLimit"],
+});
+
 export const ProjectSchema = coda.makeObjectSchema({
     properties: {
         projectId: {

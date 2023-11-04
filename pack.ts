@@ -129,6 +129,21 @@ pack.addFormula({
 /*                                 Sync Tables                                */
 /* -------------------------------------------------------------------------- */
 
+// Add a sync table to fetch all teams for this user
+pack.addSyncTable({
+    name: "Teams",
+    schema: schemas.TeamSchema,
+    identityName: "Team",
+    formula: {
+        name: "SyncTeams",
+        description: "Sync all teams you have access to",
+        parameters: [],
+        execute: async function ([], context) {
+            return await formulas.syncTeams(context);
+        },
+    },
+});
+
 // Add a sync table to fetch all projects (optionally, for a single team)
 pack.addSyncTable({
     name: "Projects",
