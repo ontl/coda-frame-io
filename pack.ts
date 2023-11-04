@@ -68,7 +68,10 @@ pack.addFormula({
     schema: schemas.ProjectReferenceSchema,
     isAction: true,
     execute: async function ([projectId, name], context) {
-        return await formulas.updateProject(context, projectId, name);
+        let result = await formulas.updateProject(context, projectId, name);
+        return {
+            result: result,
+        };
     },
 });
 
@@ -169,6 +172,7 @@ pack.addSyncTable({
             // We just have it set up to do one row at a time, so we can take
             // the first (only) item in the array
             let update = updates[0];
+            console.log(update.newValue);
 
             return {
                 result: [

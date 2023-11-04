@@ -48,6 +48,7 @@ function processProjectResponse(response): {
     fileCount: number;
     folderCount: number;
 } {
+    console.log("ID: " + response.id);
     return {
         name: response.name,
         projectId: response.id,
@@ -138,9 +139,7 @@ export async function updateProject(
         }),
     });
     let project = response.body;
-    return {
-        result: processProjectResponse(project),
-    };
+    return processProjectResponse(project);
 }
 
 /* -------------------------------------------------------------------------- */
