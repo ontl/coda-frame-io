@@ -65,6 +65,10 @@ export const ProjectSchema = coda.makeObjectSchema({
         folderCount: {
             type: coda.ValueType.Number,
         },
+        storage: {
+            description: "Storage used by the project in GB",
+            type: coda.ValueType.Number,
+        },
         createdAt: {
             description: "Date the project was created",
             type: coda.ValueType.String,

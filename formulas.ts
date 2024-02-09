@@ -47,6 +47,7 @@ function processProjectResponse(response): {
     url: string;
     fileCount: number;
     folderCount: number;
+    storage: number;
 } {
     console.log("ID: " + response.id);
     return {
@@ -59,6 +60,7 @@ function processProjectResponse(response): {
         url: "https://app.frame.io/projects/" + response.id,
         fileCount: response.file_count,
         folderCount: response.folder_count,
+        storage: response.storage / 1000000000,
     };
 }
 
@@ -162,11 +164,14 @@ function processReviewLinkResponse(responseBody): {
     viewAllVersions: boolean;
 } {
     let assets = [];
-    for (let asset of responseBody.items) {
-        assets.push({
-            assetId: asset.asset_id,
-            name: "Not found",
-        });
+    // Sometimes (e.g. on update) the assets are not included in the response
+    if (responseBody.items) {
+        for (let asset of responseBody.items) {
+            assets.push({
+                assetId: asset.asset_id,
+                name: "Not found",
+            });
+        }
     }
 
     return {

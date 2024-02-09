@@ -63,6 +63,7 @@ pack.addFormula({
             description: "The new name of the project",
             optional: true,
         }),
+        // TODO: Add support for updating project settings
     ],
     resultType: coda.ValueType.Object,
     schema: schemas.ProjectReferenceSchema,
