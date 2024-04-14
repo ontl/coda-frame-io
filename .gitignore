@@ -1,5 +1,7 @@
 .coda.json
 .coda-credentials.json
 .coda-pack.json
+.coda-pack-public.json
+.coda-pack-private.json
 node_modules
 .vscode
